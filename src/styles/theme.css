@@ -1,0 +1,71 @@
+/* ─── Design tokens (dark / light) ───────────────────────────
+   The Resume Builder styles reference these CSS variables. The active
+   theme is chosen by the `data-theme` attribute on <html>, set before
+   paint by the inline script in index.html and toggled from App.jsx.   */
+
+:root,
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elev: #0d0d0d;
+  --bg-elev-2: #141414;
+  --surface: #141414;
+  --border: #1a1a1a;
+  --border-strong: #262626;
+
+  --text: #ffffff;
+  --text-muted: #a3a3a3;
+  --text-dim: #737373;
+
+  --accent: #c084fc;
+  --accent-hover: #d8b4fe;
+  --accent-soft: rgba(192, 132, 252, 0.12);
+
+  --btn-primary-text: #0a0a0a;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-elev: #fafafa;
+  --bg-elev-2: #f5f5f5;
+  --surface: #ffffff;
+  --border: #e5e5e5;
+  --border-strong: #d4d4d4;
+
+  --text: #0a0a0a;
+  --text-muted: #525252;
+  --text-dim: #737373;
+
+  --accent: #9333ea;
+  --accent-hover: #7e22ce;
+  --accent-soft: rgba(147, 51, 234, 0.1);
+
+  --btn-primary-text: #ffffff;
+}
+
+:root {
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
