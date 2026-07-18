@@ -262,6 +262,12 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
     store.resumes.find((r) => r.id === store.activeId) || store.resumes[0];
   const data = active;
 
+  // Resumes to surface in the home grid and nav. The store always keeps at
+  // least one resume, but we hide the auto-seeded blank placeholder so a fresh
+  // visitor sees the "create your first resume" empty state instead of a
+  // phantom "Untitled resume" card.
+  const listedResumes = store.resumes.filter((r) => !isDiscardable(r));
+
   const setData = (updater) =>
     setStore((s) => ({
       ...s,
@@ -696,7 +702,7 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
           open={navOpen}
           page={page}
           filter={homeFilter}
-          resumes={store.resumes}
+          resumes={listedResumes}
           activeId={store.activeId}
           isAdmin={isAdmin(user)}
           onNavHome={() => navFilter("all")}
@@ -711,7 +717,7 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
             <AdminPanel />
           ) : page === "home" ? (
             <HomeGrid
-              resumes={store.resumes}
+              resumes={listedResumes}
               query={query}
               filter={homeFilter}
               setFilter={setHomeFilter}
