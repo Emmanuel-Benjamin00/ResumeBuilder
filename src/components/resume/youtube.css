@@ -1288,8 +1288,8 @@
   }
   .yt-preview-rail {
     position: static;
-    height: 80vh;
-    order: -1; /* show the preview above the form when stacked */
+    height: min(80vh, 900px);
+    order: -1; /* show the preview above the form when stacked (tablet) */
   }
 }
 @media (max-width: 900px) {
@@ -1299,6 +1299,10 @@
   }
   .yt-nav,
   .yt-nav-mini {
+    display: none;
+  }
+  /* The nav is gone on mobile, so the menu toggle does nothing — hide it. */
+  .yt-menu-btn {
     display: none;
   }
 }
@@ -1319,5 +1323,70 @@
   }
   .yt-content {
     padding: 8px 14px 64px;
+  }
+}
+
+/* ── Phones ─────────────────────────────────────────────────────────────
+   Editing-first layout: form on top, a shorter live preview below it, and
+   full-width, easy-to-tap action buttons. */
+@media (max-width: 600px) {
+  .yt-content {
+    padding: 8px 12px 72px;
+  }
+  .yt-watch {
+    gap: 16px;
+  }
+  /* Preview moves below the form and shrinks so it doesn't bury the fields. */
+  .yt-preview-rail {
+    order: 0;
+    height: auto;
+  }
+  .yt-preview-frame {
+    flex: none;
+    height: 62vh;
+    min-height: 340px;
+  }
+  .yt-watch-title {
+    font-size: 1.15rem;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .yt-watch-actions {
+    align-items: stretch;
+  }
+  .yt-channel {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .yt-ready-btn {
+    margin-left: auto;
+  }
+  .yt-watch-pills {
+    width: 100%;
+  }
+  .yt-action-pill {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 12px 14px;
+  }
+  .yt-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .yt-card-title {
+    font-size: 0.98rem;
+  }
+}
+
+/* ── Small phones ── */
+@media (max-width: 380px) {
+  .yt-bar {
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .yt-pill-btn {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
   }
 }
