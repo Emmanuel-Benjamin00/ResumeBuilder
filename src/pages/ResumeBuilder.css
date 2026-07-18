@@ -1228,6 +1228,19 @@
   .rb-wrap {
     padding: 20px 14px 64px;
   }
+  .rb-card {
+    padding: 16px 14px 18px;
+  }
+  .rb-card legend {
+    font-size: 0.98rem;
+  }
+  /* Keep the name value + Rename button on one comfortable row. */
+  .rb-name-value {
+    font-size: 1rem;
+  }
+  .rb-name-edit-actions .rb-btn {
+    flex: 1 1 0;
+  }
 }
 
 /* ── Layout & Spacing panel ── */
