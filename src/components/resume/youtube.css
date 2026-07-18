@@ -1301,6 +1301,10 @@
   .yt-nav-mini {
     display: none;
   }
+  /* The nav is gone on mobile, so the menu toggle does nothing — hide it. */
+  .yt-menu-btn {
+    display: none;
+  }
 }
 @media (max-width: 720px) {
   .yt-bar {

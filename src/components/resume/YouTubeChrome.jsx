@@ -126,7 +126,7 @@ export function TopBar({
       <div className="yt-bar-left">
         <button
           type="button"
-          className="yt-icon-btn"
+          className="yt-icon-btn yt-menu-btn"
           onClick={onMenu}
           aria-label="Menu"
           title="Menu"
