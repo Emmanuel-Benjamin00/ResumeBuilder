@@ -1,0 +1,1323 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   YouTube-styled chrome for the Resume Builder.
+   Top bar · nav drawer · home grid (resume "video" cards) · watch page ·
+   up-next rail · create dialog. Colours come from the shared theme tokens.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.yt-app {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────── */
+.yt-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 640px) 1fr;
+  align-items: center;
+  gap: 16px;
+  height: var(--app-bar-h);
+  padding: 0 16px;
+  background: var(--bg);
+}
+.yt-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.yt-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.yt-brand:hover {
+  background: var(--yt-hover);
+}
+.yt-logo {
+  display: inline-flex;
+  line-height: 0;
+}
+.yt-brand-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+.yt-brand-sup {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.yt-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.yt-icon-btn:hover {
+  background: var(--yt-hover);
+}
+
+/* search */
+.yt-bar-search {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.yt-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  background: var(--search-bg);
+  border: 1px solid var(--search-border);
+  border-radius: var(--radius-pill);
+  padding-left: 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.yt-search:focus-within {
+  border-color: #3ea6ff;
+  box-shadow: inset 0 0 0 1px #3ea6ff;
+  padding-left: 12px;
+}
+.yt-search-icon {
+  display: none;
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+.yt-search:focus-within .yt-search-icon {
+  display: inline-flex;
+}
+.yt-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.yt-search-input:focus {
+  outline: none;
+}
+.yt-search-input::placeholder {
+  color: var(--text-dim);
+}
+.yt-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.yt-search-clear:hover {
+  color: var(--text);
+}
+.yt-search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 100%;
+  border: none;
+  border-left: 1px solid var(--search-border);
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--bg-elev-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.yt-search-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.yt-bar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+/* "Create" pill */
+.yt-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.yt-pill-btn:hover {
+  background: var(--border);
+}
+
+/* account / sign-in */
+.yt-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #3ea6ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.yt-signin:hover {
+  background: rgba(62, 166, 255, 0.12);
+  border-color: #3ea6ff;
+}
+.yt-signin-ring {
+  display: inline-flex;
+  line-height: 0;
+}
+.yt-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex: none;
+  user-select: none;
+}
+.yt-avatar-btn {
+  border: none;
+  cursor: pointer;
+}
+.yt-account {
+  position: relative;
+}
+.yt-account-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 260px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 60;
+}
+.yt-account-head {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.yt-account-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.yt-account-id strong {
+  font-size: 0.92rem;
+}
+.yt-account-id span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yt-account-item {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 11px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.yt-account-item:hover {
+  background: var(--yt-hover);
+}
+
+/* ── Body: nav + content ─────────────────────────────────────────────── */
+.yt-body {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  align-items: start;
+}
+.yt-body-mini {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+/* ── Nav drawer ──────────────────────────────────────────────────────── */
+.yt-nav {
+  position: sticky;
+  top: var(--app-bar-h);
+  height: calc(100vh - var(--app-bar-h));
+  overflow-y: auto;
+  padding: 12px 12px 24px;
+}
+.yt-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.yt-nav-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 4px;
+}
+.yt-nav-heading {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 8px 12px 6px;
+}
+.yt-nav-empty {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding: 4px 12px;
+}
+.yt-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+.yt-nav-row:hover {
+  background: var(--yt-hover);
+}
+.yt-nav-row-active {
+  background: var(--yt-hover);
+  font-weight: 600;
+}
+.yt-nav-ico {
+  display: inline-flex;
+  color: var(--text);
+  flex: none;
+}
+.yt-nav-row-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-nav-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex: none;
+}
+.yt-nav-live {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--yt-red);
+  border-radius: 3px;
+  padding: 1px 4px;
+  flex: none;
+}
+.yt-nav-foot {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  padding: 4px 12px;
+}
+
+/* mini rail */
+.yt-nav-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 4px;
+}
+.yt-mini-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 14px 0 10px;
+  font-size: 0.62rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+.yt-mini-item:hover {
+  background: var(--yt-hover);
+}
+.yt-mini-item-active {
+  background: var(--yt-hover);
+}
+
+/* ── Content ─────────────────────────────────────────────────────────── */
+.yt-content {
+  min-width: 0;
+  padding: 8px 24px 80px;
+}
+
+/* ── Home: chips + grid ──────────────────────────────────────────────── */
+.yt-home {
+  min-width: 0;
+}
+.yt-chips {
+  position: sticky;
+  top: var(--app-bar-h);
+  z-index: 20;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0 16px;
+  background: var(--bg);
+}
+.yt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.yt-chip:hover {
+  background: var(--border);
+}
+.yt-chip-active,
+.yt-chip-active:hover {
+  background: var(--chip-active-bg);
+  color: var(--chip-active-text);
+}
+.yt-chip-n {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.yt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px 16px;
+}
+
+/* card */
+.yt-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.yt-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  background: var(--bg-elev-2);
+}
+.yt-thumb-paper {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  color: #0f0f0f;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+.yt-thumb-bar {
+  height: 8px;
+  width: 46%;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+.yt-thumb-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f0f0f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-thumb-role {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #cc0000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.yt-thumb-l {
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e2e2;
+}
+.yt-thumb-badge {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.82);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+.yt-thumb-badge-ready {
+  background: var(--yt-red);
+}
+.yt-thumb-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.yt-thumb:hover .yt-thumb-hover {
+  opacity: 1;
+}
+
+.yt-card-meta {
+  display: flex;
+  gap: 12px;
+  padding: 12px 2px 0;
+}
+.yt-card-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex: none;
+}
+.yt-card-text {
+  flex: 1;
+  min-width: 0;
+}
+.yt-card-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-card-star {
+  color: var(--yt-red);
+}
+.yt-card-sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-card-menu-wrap {
+  position: relative;
+  flex: none;
+}
+.yt-card-menu-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: 50%;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: background 0.12s ease, opacity 0.12s ease;
+}
+.yt-card:hover .yt-card-menu-btn {
+  opacity: 1;
+}
+.yt-card-menu-btn:hover {
+  background: var(--yt-hover);
+}
+.yt-card-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 200px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 30;
+}
+.yt-card-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.yt-card-menu > button:hover {
+  background: var(--yt-hover);
+}
+.yt-card-menu-del {
+  color: #ff5252 !important;
+}
+.yt-card-menu-confirm {
+  padding: 12px;
+}
+.yt-card-menu-confirm p {
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+.yt-card-menu-actions {
+  display: flex;
+  gap: 8px;
+}
+.yt-card-menu-actions button {
+  flex: 1;
+}
+
+/* new-resume card */
+.yt-card-new {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  aspect-ratio: 16 / 10;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.yt-card-new:hover {
+  border-color: var(--yt-red);
+  color: var(--text);
+  background: var(--accent-soft);
+}
+.yt-card-new-plus {
+  display: inline-flex;
+  color: var(--yt-red);
+}
+.yt-card-new-label {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.yt-card-new-sub {
+  font-size: 0.8rem;
+}
+
+/* empty state */
+.yt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+.yt-empty-mark {
+  opacity: 0.9;
+  margin-bottom: 8px;
+  transform: scale(1.6);
+}
+.yt-empty h3 {
+  font-size: 1.2rem;
+  color: var(--text);
+}
+.yt-empty p {
+  max-width: 420px;
+  font-size: 0.9rem;
+}
+.yt-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--btn-primary-text);
+  padding: 10px 20px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.yt-cta:hover {
+  background: var(--accent-hover);
+}
+
+/* ── Watch page — editor left, live preview pinned right ─────────────── */
+.yt-watch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(480px, 640px);
+  gap: 24px;
+  padding-top: 12px;
+  align-items: start;
+}
+.yt-watch-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* live preview column — sticky so it stays in view while you edit */
+.yt-preview-rail {
+  position: sticky;
+  top: calc(var(--app-bar-h) + 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: calc(100vh - var(--app-bar-h) - 24px);
+}
+.yt-preview-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.yt-preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--yt-red);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.yt-preview-frame {
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #ffffff;
+}
+.yt-player-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.yt-watch-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.yt-watch-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+.yt-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: var(--chip-bg);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 7px 14px 7px 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: none;
+}
+.yt-back-link:hover {
+  background: var(--border);
+}
+.yt-watch-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.yt-channel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.yt-channel-ava {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  flex: none;
+}
+.yt-channel-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.yt-channel-id strong {
+  font-size: 0.95rem;
+}
+.yt-channel-id span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.yt-ready-btn {
+  margin-left: 8px;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: var(--text);
+  color: var(--bg);
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.yt-ready-btn:hover {
+  opacity: 0.85;
+}
+.yt-ready-on {
+  background: var(--accent);
+  color: #fff;
+}
+.yt-watch-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.yt-action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--chip-bg);
+  color: var(--text);
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.yt-action-pill:hover {
+  background: var(--border);
+}
+.yt-action-primary {
+  background: var(--accent);
+  color: var(--btn-primary-text);
+}
+.yt-action-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.yt-action-pill:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.yt-watch-sync {
+  margin-top: 2px;
+}
+/* let the shared sync bar sit flush-left inside the watch header */
+.yt-watch-sync .rb-sync {
+  margin: 0;
+  max-width: none;
+  justify-content: flex-start;
+}
+
+/* ── Up-next rail ────────────────────────────────────────────────────── */
+.yt-rail {
+  position: sticky;
+  top: calc(var(--app-bar-h) + 12px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.yt-rail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 2px 2px 6px;
+}
+.yt-rail-new {
+  border: none;
+  background: var(--chip-bg);
+  color: var(--text);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+.yt-rail-new:hover {
+  background: var(--border);
+}
+.yt-rail-empty {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding: 4px 2px;
+}
+.yt-rail-item {
+  display: flex;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  padding: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+.yt-rail-item:hover {
+  background: var(--yt-hover);
+}
+.yt-rail-thumb {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 78px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  flex: none;
+}
+.yt-rail-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.82);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.yt-rail-badge-ready {
+  background: var(--yt-red);
+}
+.yt-rail-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 2px;
+}
+.yt-rail-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.yt-rail-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Create dialog ───────────────────────────────────────────────────── */
+.yt-modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+}
+.yt-modal {
+  width: min(560px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.yt-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.yt-modal-head h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.yt-modal-body {
+  padding: 24px 20px;
+}
+.yt-modal-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+}
+.yt-modal-drop-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--bg-elev-2);
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.yt-modal-drop-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.yt-modal-drop-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 360px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.yt-modal-input {
+  width: 100%;
+  max-width: 400px;
+  margin-top: 8px;
+  padding: 11px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.yt-modal-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.yt-modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* shared small buttons used by dialog + card confirm */
+.yt-btn-ghost,
+.yt-btn-primary,
+.yt-btn-danger {
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 9px 18px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+.yt-btn-ghost {
+  background: var(--chip-bg);
+  color: var(--text);
+}
+.yt-btn-ghost:hover {
+  background: var(--border);
+}
+.yt-btn-primary {
+  background: var(--accent);
+  color: var(--btn-primary-text);
+}
+.yt-btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+.yt-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.yt-btn-danger {
+  background: var(--yt-red);
+  color: #fff;
+}
+.yt-btn-danger:hover {
+  background: #cc0000;
+}
+
+/* ── Admin: users → their resumes ────────────────────────────────────── */
+.ad-users {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ad-user {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  background: var(--bg);
+}
+.ad-user-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ad-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex: none;
+}
+.ad-user-id {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ad-user-id strong {
+  font-size: 0.95rem;
+}
+.ad-user-id span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.ad-user-meta {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.ad-none {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.ad-resumes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ad-resume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.ad-resume-row:hover {
+  background: var(--yt-hover);
+}
+.ad-resume-row-open {
+  border-color: var(--accent);
+}
+.ad-resume-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ad-star {
+  color: var(--yt-red);
+}
+.ad-status {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
+  flex: none;
+}
+.ad-status-ready {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.ad-view {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3ea6ff;
+  flex: none;
+}
+.ad-resume .rb-admin-viewer {
+  margin-top: 8px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 1200px) {
+  .yt-watch {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .yt-preview-rail {
+    position: static;
+    height: 80vh;
+    order: -1; /* show the preview above the form when stacked */
+  }
+}
+@media (max-width: 900px) {
+  .yt-body,
+  .yt-body-mini {
+    grid-template-columns: 1fr;
+  }
+  .yt-nav,
+  .yt-nav-mini {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .yt-bar {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 0 10px;
+  }
+  .yt-brand-name {
+    display: none;
+  }
+  .yt-pill-btn-label {
+    display: none;
+  }
+  .yt-search-btn {
+    width: 48px;
+  }
+  .yt-content {
+    padding: 8px 14px 64px;
+  }
+}

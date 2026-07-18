@@ -33,6 +33,14 @@ import {
 import CustomSectionEditor from "../components/resume/CustomSectionEditor";
 import AdminPanel from "../components/resume/AdminPanel";
 import {
+  TopBar,
+  SideNav,
+  HomeGrid,
+  WatchHeader,
+  CreateModal,
+} from "../components/resume/YouTubeChrome";
+import "../components/resume/youtube.css";
+import {
   isConfigured as cloudEnabled,
   isAdmin,
   onAuthStateChanged,
@@ -42,6 +50,12 @@ import {
   saveResume,
 } from "../common/firebase";
 import "./ResumeBuilder.css";
+
+/* ── Feature flags ──
+   Require users to sign in before they can use the app. Turned OFF for now so
+   anyone can use it anonymously (saves on this device only). Flip to `true`
+   later to make sign-in compulsory again — the login gate is already built. */
+const REQUIRE_LOGIN = false;
 
 /* ── Blank templates for repeatable rows ── */
 const emptyExperience = () => ({
@@ -226,20 +240,20 @@ function loadInitialStore() {
 }
 
 ResumeBuilder.propTypes = {
-  query: PropTypes.string,
-  navCollapsed: PropTypes.bool,
-  onToggleNav: PropTypes.func,
+  theme: PropTypes.string,
+  onToggleTheme: PropTypes.func,
 };
 
-export default function ResumeBuilder({
-  query = "",
-  navCollapsed = false,
-  onToggleNav,
-}) {
+export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
   const [store, setStore] = useState(loadInitialStore);
-  const [showPreview, setShowPreview] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [view, setView] = useState("builder"); // "builder" | "admin"
+
+  /* ── YouTube-style navigation state ── */
+  const [page, setPage] = useState("home"); // "home" | "watch" | "admin"
+  const [query, setQuery] = useState(""); // top-bar search
+  const [navOpen, setNavOpen] = useState(true); // full drawer vs mini rail
+  const [naming, setNaming] = useState(false); // create-resume dialog
+  const [homeFilter, setHomeFilter] = useState("all"); // all | ready | ongoing
 
   // The resume currently being edited. Everything below operates on it, so the
   // rest of the form is unchanged: `data` is the active resume, and `setData`
@@ -561,6 +575,19 @@ export default function ResumeBuilder({
       );
       return;
     }
+    // Downloading is gated behind sign-in: if the user isn't signed in yet,
+    // prompt Google sign-in and, once it succeeds, continue straight to the
+    // download. (Only enforced when cloud sync is actually configured.)
+    if (cloudEnabled && !user) {
+      try {
+        toast.info("Please sign in to download your resume.");
+        await signInWithGoogle();
+      } catch (err) {
+        console.error(err);
+        toast.error("Sign-in is required to download the PDF.");
+        return;
+      }
+    }
     setGenerating(true);
     persist();
     try {
@@ -598,97 +625,120 @@ export default function ResumeBuilder({
     }
   };
 
-  return (
-    <div className="rb-wrap">
-      <header className="rb-head">
-        <h1 className="rb-title">Resume Builder</h1>
-        <p className="rb-sub">
-          Fill in your details, preview live, and download a clean, ATS-friendly
-          PDF.
-        </p>
+  /* ── Navigation ── */
+  const goHome = () => setPage("home");
+  const openResume = (id) => {
+    switchResume(id);
+    setPage("watch");
+  };
+  const navFilter = (f) => {
+    setHomeFilter(f);
+    setPage("home");
+  };
+  const createResume = (name) => {
+    addResume(name);
+    setNaming(false);
+    setPage("watch");
+  };
 
-        <SyncBar
-          cloudEnabled={cloudEnabled}
-          authReady={authReady}
-          user={user}
-          syncState={syncState}
-          onSignIn={handleSignIn}
-          onSignOut={handleSignOut}
+  const syncBar = (
+    <SyncBar
+      cloudEnabled={cloudEnabled}
+      authReady={authReady}
+      user={user}
+      syncState={syncState}
+      onSignOut={handleSignOut}
+    />
+  );
+
+  // Require sign-in before the app can be used, so a resume is never saved
+  // only to a device the user might lose. Gated behind the REQUIRE_LOGIN flag
+  // (off for now) and only when cloud sync is actually configured; otherwise
+  // the app stays usable in local-only mode.
+  if (REQUIRE_LOGIN && cloudEnabled) {
+    if (!authReady) {
+      return (
+        <div className="rb-gate">
+          <div className="rb-gate-card">
+            <span className="rb-gate-spinner" aria-hidden="true" />
+            <p className="rb-gate-msg">Loading…</p>
+          </div>
+        </div>
+      );
+    }
+    if (!user) {
+      return <LoginGate onSignIn={handleSignIn} />;
+    }
+  }
+
+  return (
+    <div className="yt-app">
+      <TopBar
+        onMenu={() => setNavOpen((o) => !o)}
+        onHome={goHome}
+        query={query}
+        setQuery={setQuery}
+        onSearchSubmit={goHome}
+        onCreate={() => setNaming(true)}
+        user={user}
+        onSignIn={handleSignIn}
+        onSignOut={handleSignOut}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
+      />
+
+      {naming && (
+        <CreateModal onCancel={() => setNaming(false)} onCreate={createResume} />
+      )}
+
+      <div className={`yt-body ${navOpen ? "" : "yt-body-mini"}`}>
+        <SideNav
+          open={navOpen}
+          page={page}
+          filter={homeFilter}
+          resumes={store.resumes}
+          activeId={store.activeId}
+          isAdmin={isAdmin(user)}
+          onNavHome={() => navFilter("all")}
+          onNavFilter={navFilter}
+          onOpenResume={openResume}
+          onAdmin={() => setPage("admin")}
+          onCreate={() => setNaming(true)}
         />
 
-        {/* ── Builder / Admin tabs (admins only) ── */}
-        {isAdmin(user) && (
-          <div className="rb-viewtabs" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={view === "builder"}
-              className={`rb-viewtab ${view === "builder" ? "rb-viewtab-active" : ""}`}
-              onClick={() => setView("builder")}
-            >
-              Resume Builder
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={view === "admin"}
-              className={`rb-viewtab ${view === "admin" ? "rb-viewtab-active" : ""}`}
-              onClick={() => setView("admin")}
-            >
-              Admin
-            </button>
-          </div>
-        )}
+        <main className="yt-content">
+          {page === "admin" && isAdmin(user) ? (
+            <AdminPanel />
+          ) : page === "home" ? (
+            <HomeGrid
+              resumes={store.resumes}
+              query={query}
+              filter={homeFilter}
+              setFilter={setHomeFilter}
+              onOpen={openResume}
+              onCreate={() => setNaming(true)}
+              onRemove={removeResume}
+            />
+          ) : (
+            <div className="yt-watch">
+              <div className="yt-watch-main">
+                <WatchHeader
+                  data={data}
+                  ready={data.ready}
+                  onToggleReady={toggleReady}
+                  generating={generating}
+                  onGenerate={handleGenerate}
+                  onReset={handleReset}
+                  onBack={goHome}
+                  syncNode={syncBar}
+                />
 
-        {view === "builder" && (
-          <div className="rb-actions">
-            <button
-              className="rb-btn rb-btn-primary"
-              onClick={handleGenerate}
-              disabled={generating}
-            >
-              {generating ? "Generating…" : "Generate PDF"}
-            </button>
-            <button
-              className="rb-btn rb-btn-ghost"
-              onClick={() => setShowPreview((s) => !s)}
-            >
-              {showPreview ? "Hide Preview" : "Live Preview"}
-            </button>
-            <button className="rb-btn rb-btn-ghost" onClick={handleReset}>
-              Reset
-            </button>
-          </div>
-        )}
-      </header>
-
-      {view === "admin" && isAdmin(user) ? (
-        <AdminPanel />
-      ) : (
-        <div className="rb-shell">
-          {/* ── One resume per company; switch, add or delete ── */}
-          <ResumeSidebar
-            resumes={store.resumes}
-            activeId={store.activeId}
-            onSwitch={switchResume}
-            onAdd={addResume}
-            onRemove={removeResume}
-            query={query}
-            collapsed={navCollapsed}
-            onToggleCollapsed={onToggleNav}
-          />
-
-          <div className="rb-main">
-            <div className={`rb-layout ${showPreview ? "rb-layout-split" : ""}`}>
-              <form className="rb-form" onBlur={persist} onSubmit={(e) => e.preventDefault()}>
+                <form className="rb-form" onBlur={persist} onSubmit={(e) => e.preventDefault()}>
           {/* ── This resume's name (company / target role) — required ── */}
           <div className="rb-card rb-resume-meta">
-            <Input
-              label="Resume name / Company"
+            <ResumeNameField
               value={data.label || ""}
-              onChange={(v) => setResumeLabel(store.activeId, v)}
-              placeholder="e.g. Google — Frontend Engineer"
-              required
+              onSave={(v) => setResumeLabel(store.activeId, v)}
             />
             {!(data.label || "").trim() && (
               <p className="rb-req-hint">
@@ -1143,19 +1193,25 @@ export default function ResumeBuilder({
               rows={6}
             />
           </CollapsibleCard>
-        </form>
+                </form>
+              </div>
 
-              {showPreview && (
-                <div className="rb-preview">
-                  <PDFViewer className="rb-pdf-viewer" showToolbar={false}>
+              {/* Live preview, pinned beside the form so edits show instantly */}
+              <aside className="yt-preview-rail">
+                <div className="yt-preview-head">
+                  <span className="yt-preview-dot" aria-hidden="true" />
+                  Live preview
+                </div>
+                <div className="yt-preview-frame">
+                  <PDFViewer className="yt-player-frame" showToolbar={false}>
                     <ResumePDF data={data} />
                   </PDFViewer>
                 </div>
-              )}
+              </aside>
             </div>
-          </div>
-        </div>
-      )}
+          )}
+        </main>
+      </div>
     </div>
   );
 }
@@ -1273,289 +1329,6 @@ Range.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-/* ── Resume sidebar: YouTube-style nav drawer — search, filter chips,
-   switch, add, mark & delete. Collapse is controlled from the top bar. ── */
-const STATUS_FILTERS = [
-  { key: "all", label: "All" },
-  { key: "ready", label: "Ready" },
-  { key: "ongoing", label: "Ongoing" },
-];
-
-function ResumeSidebar({
-  resumes,
-  activeId,
-  onSwitch,
-  onAdd,
-  onRemove,
-  query = "",
-  collapsed = false,
-  onToggleCollapsed,
-}) {
-  const [naming, setNaming] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [menuId, setMenuId] = useState(null); // row whose options menu is open
-  const [confirmId, setConfirmId] = useState(null); // row awaiting delete confirm
-  const [statusFilter, setStatusFilter] = useState("all"); // all | ready | ongoing
-
-  // Close any open options menu when the selected resume changes.
-  useEffect(() => setMenuId(null), [activeId]);
-
-  // A name is mandatory — only create once one is entered.
-  const submitName = () => {
-    if (!newName.trim()) return;
-    onAdd(newName.trim());
-    setNaming(false);
-    setNewName("");
-  };
-
-  const cancelName = () => {
-    setNaming(false);
-    setNewName("");
-  };
-
-  const q = query.trim().toLowerCase();
-  const visible = resumes.filter((r) => {
-    if (q && !(r.label || "").toLowerCase().includes(q)) return false;
-    if (statusFilter === "ready" && !r.ready) return false;
-    if (statusFilter === "ongoing" && r.ready) return false;
-    return true;
-  });
-
-  if (collapsed) {
-    return (
-      <aside className="rb-sidebar rb-sidebar-collapsed">
-        <button
-          type="button"
-          className="rb-sidebar-expand"
-          onClick={onToggleCollapsed}
-          title="Show resumes"
-        >
-          <span aria-hidden="true">☰</span>
-          <span className="rb-sidebar-expand-label">Resumes</span>
-          <span className="rb-sidebar-expand-count">{resumes.length}</span>
-        </button>
-      </aside>
-    );
-  }
-
-  return (
-    <aside className="rb-sidebar">
-      <div className="rb-sidebar-head">
-        <h2 className="rb-sidebar-title">Resumes</h2>
-        <div className="rb-sidebar-head-actions">
-          {!naming && (
-            <button
-              type="button"
-              className="rb-tab-add"
-              onClick={() => {
-                setMenuId(null);
-                setConfirmId(null);
-                setNaming(true);
-              }}
-              title="Create a new resume for another company"
-            >
-              <span aria-hidden="true">＋</span> New
-            </button>
-          )}
-          <button
-            type="button"
-            className="rb-sidebar-collapse"
-            onClick={onToggleCollapsed}
-            title="Hide sidebar"
-            aria-label="Hide sidebar"
-          >
-            <span aria-hidden="true">⟨</span>
-          </button>
-        </div>
-      </div>
-
-      {/* YouTube-style filter chips */}
-      <div className="rb-chip-row" role="tablist" aria-label="Filter resumes">
-        {STATUS_FILTERS.map((f) => {
-          const count =
-            f.key === "all"
-              ? resumes.length
-              : resumes.filter((r) =>
-                  f.key === "ready" ? r.ready : !r.ready
-                ).length;
-          return (
-            <button
-              key={f.key}
-              type="button"
-              role="tab"
-              aria-selected={statusFilter === f.key}
-              className={`rb-chip ${statusFilter === f.key ? "rb-chip-active" : ""}`}
-              onClick={() => setStatusFilter(f.key)}
-            >
-              {f.label}
-              <span className="rb-chip-count">{count}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Naming a new resume — name is required before it's created. */}
-      {naming && (
-        <div className="rb-sidebar-name">
-          <input
-            className="rb-switcher-select"
-            autoFocus
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                submitName();
-              } else if (e.key === "Escape") {
-                cancelName();
-              }
-            }}
-            placeholder="Company / role name"
-          />
-          <div className="rb-sidebar-name-actions">
-            <button
-              type="button"
-              className="rb-btn rb-btn-ghost"
-              onClick={cancelName}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="rb-btn rb-btn-primary"
-              onClick={submitName}
-              disabled={!newName.trim()}
-            >
-              Create
-            </button>
-          </div>
-        </div>
-      )}
-
-      {visible.length === 0 && (
-        <p className="rb-sidebar-empty">
-          {q
-            ? `No resumes match “${query.trim()}”.`
-            : "No resumes in this filter."}
-        </p>
-      )}
-
-      <ul className="rb-sidebar-list">
-        {visible.map((r) => {
-          const name = (r.label && r.label.trim()) || "Untitled resume";
-          const isActive = r.id === activeId;
-          const menuOpen = menuId === r.id;
-          const confirming = confirmId === r.id;
-          return (
-            <li
-              key={r.id}
-              className={`rb-sidebar-item ${
-                isActive ? "rb-sidebar-item-active" : ""
-              }`}
-            >
-              <div className="rb-sidebar-item-row">
-                <button
-                  type="button"
-                  className="rb-sidebar-item-btn"
-                  onClick={() => onSwitch(r.id)}
-                  title={name}
-                >
-                  <span className="rb-sidebar-item-name">
-                    {r.ready && (
-                      <span className="rb-sidebar-star" aria-hidden="true">
-                        ★
-                      </span>
-                    )}
-                    <span className="rb-sidebar-item-label">{name}</span>
-                  </span>
-                  <span
-                    className={`rb-sidebar-badge ${
-                      r.ready ? "rb-sidebar-badge-ready" : ""
-                    }`}
-                  >
-                    {r.ready ? "Ready" : "Ongoing"}
-                  </span>
-                </button>
-
-                {resumes.length > 1 && (
-                  <button
-                    type="button"
-                    className={`rb-sidebar-opt ${menuOpen ? "rb-sidebar-opt-on" : ""}`}
-                    onClick={() =>
-                      setMenuId((cur) => (cur === r.id ? null : r.id))
-                    }
-                    aria-haspopup="true"
-                    aria-expanded={menuOpen}
-                    title="Options"
-                  >
-                    <span aria-hidden="true">⋯</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Inline options — no clipped popup. */}
-              {menuOpen && (
-                <div className="rb-sidebar-menu" role="menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="rb-sidebar-menu-del"
-                    onClick={() => {
-                      setMenuId(null);
-                      setConfirmId(r.id);
-                    }}
-                  >
-                    <span aria-hidden="true">🗑</span> Delete resume
-                  </button>
-                </div>
-              )}
-
-              {/* Deliberate two-step delete so it can't be hit by accident. */}
-              {confirming && (
-                <div className="rb-sidebar-confirm">
-                  <span className="rb-sidebar-confirm-text">
-                    Delete “{name}” permanently? This can’t be undone.
-                  </span>
-                  <div className="rb-sidebar-confirm-actions">
-                    <button
-                      type="button"
-                      className="rb-btn rb-btn-ghost"
-                      onClick={() => setConfirmId(null)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="rb-switcher-del-confirm"
-                      onClick={() => {
-                        onRemove(r.id);
-                        setConfirmId(null);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </aside>
-  );
-}
-
-ResumeSidebar.propTypes = {
-  resumes: PropTypes.array.isRequired,
-  activeId: PropTypes.string,
-  onSwitch: PropTypes.func.isRequired,
-  onAdd: PropTypes.func.isRequired,
-  onRemove: PropTypes.func.isRequired,
-  query: PropTypes.string,
-  collapsed: PropTypes.bool,
-  onToggleCollapsed: PropTypes.func,
-};
-
 /* ── Small "Options" menu holding the "copy from another resume" action.
    A custom menu (not a native <select>) so option text is always readable
    in dark mode, and the whole thing stays tucked behind one button.       */
@@ -1645,55 +1418,117 @@ CopyFromPicker.propTypes = {
   targetBlank: PropTypes.bool,
 };
 
-/* ── Cloud sync status bar ── */
-const SYNC_LABEL = {
-  loading: "Loading…",
-  saving: "Saving…",
-  saved: "All changes saved to cloud",
-  error: "Sync error — retrying on next edit",
-  idle: "",
-};
+/* ── Resume name field ──
+   The name is shown read-only with an explicit "Rename" action so it can't be
+   changed by an accidental keystroke. Editing commits only on Save, and a
+   brand-new (unnamed) resume opens straight into edit mode. */
+function ResumeNameField({ value, onSave }) {
+  const trimmed = (value || "").trim();
+  const [editing, setEditing] = useState(() => !trimmed);
+  const [draft, setDraft] = useState(value || "");
 
-function SyncBar({ cloudEnabled, authReady, user, syncState, onSignIn, onSignOut }) {
-  if (!cloudEnabled) {
+  const start = () => {
+    setDraft(value || "");
+    setEditing(true);
+  };
+  const save = () => {
+    const next = draft.trim();
+    if (!next) return;
+    onSave(next);
+    setEditing(false);
+  };
+  const cancel = () => {
+    setDraft(value || "");
+    if (trimmed) setEditing(false); // don't trap a still-unnamed resume
+  };
+
+  if (editing) {
     return (
-      <div className="rb-sync rb-sync-local">
-        Saved on this device only. Cloud sync isn&apos;t configured yet.
+      <div className="rb-name-edit">
+        <Input
+          label="Resume name / Company"
+          value={draft}
+          onChange={setDraft}
+          placeholder="e.g. Google — Frontend Engineer"
+          required
+        />
+        <div className="rb-name-edit-actions">
+          <button
+            type="button"
+            className="rb-btn rb-btn-primary"
+            onClick={save}
+            disabled={!draft.trim()}
+          >
+            Save
+          </button>
+          {trimmed && (
+            <button
+              type="button"
+              className="rb-btn rb-btn-ghost"
+              onClick={cancel}
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
     );
   }
-  if (!authReady) {
-    return <div className="rb-sync">Checking sign-in…</div>;
-  }
-  if (!user) {
-    return (
-      <div className="rb-sync">
-        <span className="rb-sync-hint">
-          Sign in to save your resume and open it on any device.
+
+  return (
+    <div className="rb-name-view">
+      <span className="rb-label">Resume name / Company</span>
+      <div className="rb-name-view-row">
+        <span className="rb-name-value" title={trimmed}>
+          {trimmed}
         </span>
-        <button className="rb-btn rb-btn-google" onClick={onSignIn}>
-          <GoogleGlyph /> Sign in with Google
+        <button
+          type="button"
+          className="rb-name-rename"
+          onClick={start}
+          title="Rename this resume"
+        >
+          <span aria-hidden="true">✎</span> Rename
         </button>
       </div>
-    );
-  }
-  return (
-    <div className="rb-sync">
-      <span className={`rb-sync-dot rb-sync-${syncState}`} />
-      <span className="rb-sync-status">
-        {SYNC_LABEL[syncState] || "Synced"}
-      </span>
-      <span className="rb-sync-user">· {user.email}</span>
-      <button className="rb-link-btn" onClick={onSignOut}>
-        Sign out
-      </button>
     </div>
   );
 }
+ResumeNameField.propTypes = {
+  value: PropTypes.string,
+  onSave: PropTypes.func.isRequired,
+};
+
+/* ── Login gate ── */
+function LoginGate({ onSignIn }) {
+  return (
+    <div className="rb-gate">
+      <div className="rb-gate-card">
+        <span className="rb-gate-logo" aria-hidden="true">📄</span>
+        <h1 className="rb-gate-title">
+          Resume<span className="rb-gate-title-sup">Builder</span>
+        </h1>
+        <p className="rb-gate-msg">
+          Please sign in to continue — so your resumes are saved to your
+          account and your data won&apos;t be lost.
+        </p>
+        <button className="rb-gate-btn" onClick={onSignIn}>
+          <GoogleGlyph /> Sign in with Google
+        </button>
+        <p className="rb-gate-note">
+          Your resumes are stored securely and synced across your devices.
+        </p>
+      </div>
+    </div>
+  );
+}
+LoginGate.propTypes = {
+  onSignIn: PropTypes.func.isRequired,
+};
 
 function GoogleGlyph() {
   return (
-    <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
       <path
         fill="#EA4335"
         d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
@@ -1714,12 +1549,50 @@ function GoogleGlyph() {
   );
 }
 
+/* ── Cloud sync status bar ── */
+const SYNC_LABEL = {
+  loading: "Loading…",
+  saving: "Saving…",
+  saved: "All changes saved to cloud",
+  error: "Sync error — retrying on next edit",
+  idle: "",
+};
+
+function SyncBar({ cloudEnabled, authReady, user, syncState, onSignOut }) {
+  if (!cloudEnabled) {
+    return (
+      <div className="rb-sync rb-sync-local">
+        Saved on this device only. Cloud sync isn&apos;t configured yet.
+      </div>
+    );
+  }
+  if (!authReady) {
+    return <div className="rb-sync">Checking sign-in…</div>;
+  }
+  if (!user) {
+    // Sign-in is already available via the account button in the top bar,
+    // so the logged-out prompt here would be redundant.
+    return null;
+  }
+  return (
+    <div className="rb-sync">
+      <span className={`rb-sync-dot rb-sync-${syncState}`} />
+      <span className="rb-sync-status">
+        {SYNC_LABEL[syncState] || "Synced"}
+      </span>
+      <span className="rb-sync-user">· {user.email}</span>
+      <button className="rb-link-btn" onClick={onSignOut}>
+        Sign out
+      </button>
+    </div>
+  );
+}
+
 SyncBar.propTypes = {
   cloudEnabled: PropTypes.bool,
   authReady: PropTypes.bool,
   user: PropTypes.object,
   syncState: PropTypes.string,
-  onSignIn: PropTypes.func.isRequired,
   onSignOut: PropTypes.func.isRequired,
 };
 

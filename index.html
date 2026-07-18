@@ -15,12 +15,8 @@
     <script>
       (function () {
         var stored = localStorage.getItem("resume-builder-theme");
-        var theme = stored;
-        if (theme !== "dark" && theme !== "light") {
-          theme = window.matchMedia("(prefers-color-scheme: light)").matches
-            ? "light"
-            : "dark";
-        }
+        // Default to dark unless the user has explicitly chosen light before.
+        var theme = stored === "light" ? "light" : "dark";
         document.documentElement.setAttribute("data-theme", theme);
         document.documentElement.style.colorScheme = theme;
       })();
