@@ -5,57 +5,175 @@
   background: var(--bg);
 }
 
-.app-bar {
+/* ── YouTube-style top app bar ────────────────────────────────── */
+.yt-bar {
   position: sticky;
   top: 0;
-  z-index: 30;
-  display: flex;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: 1fr minmax(0, 640px) 1fr;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--bg) 85%, transparent);
-  backdrop-filter: blur(10px);
+  gap: 16px;
+  height: var(--app-bar-h);
+  padding: 0 16px;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+}
+/* Faint hairline only once the surface below can scroll under it. */
+[data-theme="light"] .yt-bar {
+  border-bottom-color: var(--border);
 }
 
-.app-brand {
+.yt-bar-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
-.app-logo {
-  font-size: 1.25rem;
-  line-height: 1;
+.yt-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  white-space: nowrap;
 }
-
-.app-name {
+.yt-logo {
+  display: inline-flex;
+  line-height: 0;
+}
+.yt-brand-name {
+  font-size: 1.15rem;
   font-weight: 700;
-  font-size: 1rem;
+  letter-spacing: -0.03em;
   color: var(--text);
-  letter-spacing: -0.01em;
+}
+.yt-brand-sup {
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-.app-theme-toggle {
+/* Round, ghost icon buttons (menu / theme) */
+.yt-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  font-size: 1.05rem;
-  line-height: 1;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
   background: transparent;
+  color: var(--text);
+  font-size: 1.1rem;
+  line-height: 1;
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease;
 }
-.app-theme-toggle:hover {
-  border-color: var(--accent);
-  transform: translateY(-1px);
+.yt-icon-btn:hover {
+  background: var(--yt-hover);
+}
+
+/* ── Center search ── */
+.yt-bar-search {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.yt-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 40px;
+  background: var(--search-bg);
+  border: 1px solid var(--search-border);
+  border-radius: var(--radius-pill);
+  padding-left: 16px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.yt-search:focus-within {
+  border-color: #3ea6ff;
+  box-shadow: inset 0 0 0 1px #3ea6ff;
+  padding-left: 14px;
+}
+.yt-search-icon {
+  display: none;
+  color: var(--text-muted);
+}
+.yt-search:focus-within .yt-search-icon {
+  display: inline-flex;
+  margin-right: 8px;
+}
+.yt-search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+.yt-search-input:focus {
+  outline: none;
+}
+.yt-search-input::placeholder {
+  color: var(--text-dim);
+}
+.yt-search-clear {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.yt-search-clear:hover {
+  color: var(--text);
+}
+.yt-search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 100%;
+  border: none;
+  border-left: 1px solid var(--search-border);
+  border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+  background: var(--bg-elev-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.yt-search-btn:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.yt-bar-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
 .app-main {
   flex: 1;
+}
+
+/* ── Responsive: collapse the wordmark + search chrome on small screens ── */
+@media (max-width: 720px) {
+  .yt-bar {
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    padding: 0 10px;
+  }
+  .yt-brand-name {
+    display: none;
+  }
+  .yt-search-btn {
+    width: 48px;
+  }
 }

@@ -225,7 +225,17 @@ function loadInitialStore() {
   return emptyStore();
 }
 
-export default function ResumeBuilder() {
+ResumeBuilder.propTypes = {
+  query: PropTypes.string,
+  navCollapsed: PropTypes.bool,
+  onToggleNav: PropTypes.func,
+};
+
+export default function ResumeBuilder({
+  query = "",
+  navCollapsed = false,
+  onToggleNav,
+}) {
   const [store, setStore] = useState(loadInitialStore);
   const [showPreview, setShowPreview] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -663,6 +673,9 @@ export default function ResumeBuilder() {
             onSwitch={switchResume}
             onAdd={addResume}
             onRemove={removeResume}
+            query={query}
+            collapsed={navCollapsed}
+            onToggleCollapsed={onToggleNav}
           />
 
           <div className="rb-main">
@@ -1260,13 +1273,29 @@ Range.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-/* ── Resume sidebar: list every resume, switch, add, mark & delete ── */
-function ResumeSidebar({ resumes, activeId, onSwitch, onAdd, onRemove }) {
-  const [collapsed, setCollapsed] = useState(false);
+/* ── Resume sidebar: YouTube-style nav drawer — search, filter chips,
+   switch, add, mark & delete. Collapse is controlled from the top bar. ── */
+const STATUS_FILTERS = [
+  { key: "all", label: "All" },
+  { key: "ready", label: "Ready" },
+  { key: "ongoing", label: "Ongoing" },
+];
+
+function ResumeSidebar({
+  resumes,
+  activeId,
+  onSwitch,
+  onAdd,
+  onRemove,
+  query = "",
+  collapsed = false,
+  onToggleCollapsed,
+}) {
   const [naming, setNaming] = useState(false);
   const [newName, setNewName] = useState("");
   const [menuId, setMenuId] = useState(null); // row whose options menu is open
   const [confirmId, setConfirmId] = useState(null); // row awaiting delete confirm
+  const [statusFilter, setStatusFilter] = useState("all"); // all | ready | ongoing
 
   // Close any open options menu when the selected resume changes.
   useEffect(() => setMenuId(null), [activeId]);
@@ -1284,13 +1313,21 @@ function ResumeSidebar({ resumes, activeId, onSwitch, onAdd, onRemove }) {
     setNewName("");
   };
 
+  const q = query.trim().toLowerCase();
+  const visible = resumes.filter((r) => {
+    if (q && !(r.label || "").toLowerCase().includes(q)) return false;
+    if (statusFilter === "ready" && !r.ready) return false;
+    if (statusFilter === "ongoing" && r.ready) return false;
+    return true;
+  });
+
   if (collapsed) {
     return (
       <aside className="rb-sidebar rb-sidebar-collapsed">
         <button
           type="button"
           className="rb-sidebar-expand"
-          onClick={() => setCollapsed(false)}
+          onClick={onToggleCollapsed}
           title="Show resumes"
         >
           <span aria-hidden="true">☰</span>
@@ -1323,13 +1360,38 @@ function ResumeSidebar({ resumes, activeId, onSwitch, onAdd, onRemove }) {
           <button
             type="button"
             className="rb-sidebar-collapse"
-            onClick={() => setCollapsed(true)}
+            onClick={onToggleCollapsed}
             title="Hide sidebar"
             aria-label="Hide sidebar"
           >
             <span aria-hidden="true">⟨</span>
           </button>
         </div>
+      </div>
+
+      {/* YouTube-style filter chips */}
+      <div className="rb-chip-row" role="tablist" aria-label="Filter resumes">
+        {STATUS_FILTERS.map((f) => {
+          const count =
+            f.key === "all"
+              ? resumes.length
+              : resumes.filter((r) =>
+                  f.key === "ready" ? r.ready : !r.ready
+                ).length;
+          return (
+            <button
+              key={f.key}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === f.key}
+              className={`rb-chip ${statusFilter === f.key ? "rb-chip-active" : ""}`}
+              onClick={() => setStatusFilter(f.key)}
+            >
+              {f.label}
+              <span className="rb-chip-count">{count}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Naming a new resume — name is required before it's created. */}
@@ -1370,8 +1432,16 @@ function ResumeSidebar({ resumes, activeId, onSwitch, onAdd, onRemove }) {
         </div>
       )}
 
+      {visible.length === 0 && (
+        <p className="rb-sidebar-empty">
+          {q
+            ? `No resumes match “${query.trim()}”.`
+            : "No resumes in this filter."}
+        </p>
+      )}
+
       <ul className="rb-sidebar-list">
-        {resumes.map((r) => {
+        {visible.map((r) => {
           const name = (r.label && r.label.trim()) || "Untitled resume";
           const isActive = r.id === activeId;
           const menuOpen = menuId === r.id;
@@ -1481,6 +1551,9 @@ ResumeSidebar.propTypes = {
   onSwitch: PropTypes.func.isRequired,
   onAdd: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
+  query: PropTypes.string,
+  collapsed: PropTypes.bool,
+  onToggleCollapsed: PropTypes.func,
 };
 
 /* ── Small "Options" menu holding the "copy from another resume" action.

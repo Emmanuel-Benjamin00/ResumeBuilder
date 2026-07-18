@@ -65,14 +65,14 @@ service cloud.firestore {
     match /resumes/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
       allow read: if request.auth != null
-        && request.auth.token.email == "emmanuel26112000@gmail.com";
+        && request.auth.token.email == "<your-owner-email>";
     }
 
     // Public resume file: anyone can read; only the owner can write.
     match /public/{docId} {
       allow read: if true;
       allow write: if request.auth != null
-        && request.auth.token.email == "emmanuel26112000@gmail.com";
+        && request.auth.token.email == "<your-owner-email>";
     }
   }
 }
@@ -106,3 +106,4 @@ src/
 │   └── ResumeBuilder.css
 └── components/resume/          # PDF, form controls, custom sections, admin
 ```
+# ResumeBuilder

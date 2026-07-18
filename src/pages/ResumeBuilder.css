@@ -1,57 +1,58 @@
 .rb-wrap {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 100px 32px 80px;
+  padding: 28px 24px 80px;
   color: var(--text);
 }
 
 /* ── Header ── */
 .rb-head {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 .rb-title {
-  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  margin: 0 0 8px;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
 }
 .rb-sub {
   color: var(--text-muted);
-  font-size: 1rem;
+  font-size: 0.95rem;
   margin: 0 auto 20px;
   max-width: 540px;
 }
 .rb-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
-/* ── Builder / Admin view tabs ── */
+/* ── Builder / Admin view tabs → YouTube chips ── */
 .rb-viewtabs {
   display: inline-flex;
-  gap: 4px;
+  gap: 8px;
   margin: 0 auto 18px;
-  padding: 4px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg-elev);
 }
 .rb-viewtab {
   border: none;
-  background: transparent;
-  border-radius: 7px;
-  padding: 8px 18px;
+  background: var(--chip-bg);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--chip-text);
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.rb-viewtab-active {
-  background: var(--accent);
-  color: #fff;
+.rb-viewtab:hover {
+  background: var(--border);
+}
+.rb-viewtab-active,
+.rb-viewtab-active:hover {
+  background: var(--chip-active-bg);
+  color: var(--chip-active-text);
 }
 
 /* ── Shell: resume sidebar + main editor ── */
@@ -65,18 +66,18 @@
   min-width: 0;
 }
 
-/* ── Resume sidebar (one document per company) ── */
+/* ── Resume sidebar → YouTube nav drawer (one document per company) ── */
 .rb-sidebar {
-  flex: 0 0 260px;
-  width: 260px;
+  flex: 0 0 250px;
+  width: 250px;
   position: sticky;
-  top: 16px;
+  top: calc(var(--app-bar-h) + 12px);
   align-self: flex-start;
-  border: 1px solid var(--border);
-  background: var(--bg-elev);
-  border-radius: 14px;
-  padding: 14px;
-  max-height: calc(100vh - 32px);
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 4px 8px 14px 0;
+  max-height: calc(100vh - var(--app-bar-h) - 24px);
   overflow-y: auto;
 }
 .rb-sidebar-head {
@@ -84,7 +85,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  padding-left: 8px;
 }
 .rb-sidebar-title {
   margin: 0;
@@ -94,25 +96,67 @@
   text-transform: uppercase;
   color: var(--text-muted);
 }
+
+/* Filter chips (All / Ready / Ongoing) */
+.rb-chip-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-left: 8px;
+  flex-wrap: wrap;
+}
+.rb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.rb-chip:hover {
+  background: var(--border);
+}
+.rb-chip-active,
+.rb-chip-active:hover {
+  background: var(--chip-active-bg);
+  color: var(--chip-active-text);
+}
+.rb-chip-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.rb-sidebar-empty {
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
 .rb-sidebar-head-actions {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .rb-sidebar-collapse {
-  border: 1px solid var(--border-strong);
+  border: none;
   background: transparent;
   color: var(--text-muted);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 .rb-sidebar-collapse:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--yt-hover);
+  color: var(--text);
 }
 
 /* Collapsed rail */
@@ -179,13 +223,28 @@
   gap: 6px;
 }
 .rb-sidebar-item {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--bg);
+  position: relative;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  transition: background 0.12s ease;
+}
+.rb-sidebar-item:hover {
+  background: var(--yt-hover);
 }
 .rb-sidebar-item-active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  background: var(--yt-hover);
+}
+/* YouTube-style red active indicator on the leading edge */
+.rb-sidebar-item-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--yt-red);
 }
 .rb-sidebar-item-row {
   display: flex;
@@ -211,7 +270,7 @@
   width: 100%;
   min-width: 0;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text);
 }
 .rb-sidebar-item-label {
@@ -220,10 +279,10 @@
   white-space: nowrap;
 }
 .rb-sidebar-item-active .rb-sidebar-item-name {
-  color: var(--accent);
+  font-weight: 700;
 }
 .rb-sidebar-star {
-  color: #16a34a;
+  color: var(--yt-red);
   flex: none;
 }
 .rb-sidebar-badge {
@@ -235,9 +294,9 @@
   padding: 1px 8px;
 }
 .rb-sidebar-badge-ready {
-  color: #16a34a;
-  border-color: #16a34a;
-  background: rgba(22, 163, 74, 0.1);
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .rb-sidebar-opt {
   flex: none;
@@ -325,19 +384,19 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .rb-tab-add {
-  border: 1px dashed var(--border-strong);
-  background: transparent;
-  border-radius: 8px;
-  padding: 9px 14px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--accent);
+  border: none;
+  background: var(--chip-bg);
+  border-radius: var(--radius-pill);
+  padding: 8px 15px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--chip-text);
   cursor: pointer;
   white-space: nowrap;
+  transition: background 0.15s ease;
 }
 .rb-tab-add:hover {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--border);
 }
 .rb-switcher-del-confirm {
   border: none;
@@ -386,17 +445,17 @@
   cursor: pointer;
 }
 .rb-ready-toggle:hover {
-  border-color: #16a34a;
-  color: #16a34a;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .rb-ready-mark {
   font-size: 1rem;
   line-height: 1;
 }
 .rb-ready-on {
-  border-color: #16a34a;
-  color: #16a34a;
-  background: rgba(22, 163, 74, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 .rb-ready-status {
   font-size: 0.8rem;
@@ -404,7 +463,7 @@
   color: var(--text-muted);
 }
 .rb-ready-status-on {
-  color: #16a34a;
+  color: var(--accent);
 }
 
 /* ── "Options" menu holding the copy-from-another-resume action ── */
@@ -495,11 +554,11 @@
   flex-wrap: wrap;
   gap: 8px 12px;
   margin: 0 auto 20px;
-  padding: 10px 16px;
+  padding: 9px 18px;
   max-width: 640px;
   border: 1px solid var(--border);
-  background: var(--bg-elev);
-  border-radius: 10px;
+  background: var(--surface);
+  border-radius: var(--radius-pill);
   font-size: 0.86rem;
   color: var(--text-muted);
 }
@@ -538,19 +597,19 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #ffffff;
-  color: #1f1f1f;
+  background: transparent;
+  color: #3ea6ff;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
+  border-radius: var(--radius-pill);
   padding: 8px 16px;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .rb-btn-google:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: rgba(62, 166, 255, 0.12);
+  border-color: #3ea6ff;
 }
 
 .rb-link-btn {
@@ -567,33 +626,31 @@
 }
 
 .rb-btn {
-  border: 1px solid var(--border-strong);
-  border-radius: 10px;
-  padding: 11px 22px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 10px 20px;
+  font-size: 0.92rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s ease;
-}
-.rb-btn:hover {
-  transform: translateY(-1px);
+  transition: background 0.15s ease, opacity 0.2s ease;
 }
 .rb-btn:disabled {
-  opacity: 0.55;
+  opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 .rb-btn-primary {
   background: var(--accent);
   color: var(--btn-primary-text);
-  border-color: var(--accent);
 }
-.rb-btn-primary:hover {
+.rb-btn-primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
 .rb-btn-ghost {
-  background: var(--bg-elev-2);
+  background: var(--chip-bg);
   color: var(--text);
+}
+.rb-btn-ghost:hover:not(:disabled) {
+  background: var(--border);
 }
 
 /* ── Layout ── */
@@ -616,8 +673,8 @@
 }
 .rb-card {
   border: 1px solid var(--border);
-  background: var(--bg-elev);
-  border-radius: 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
   padding: 20px 22px 24px;
   min-width: 0;
 }
@@ -625,7 +682,7 @@
   font-weight: 700;
   font-size: 1.05rem;
   padding: 0 8px;
-  color: var(--accent);
+  color: var(--text);
 }
 
 .rb-grid {
@@ -867,7 +924,7 @@
   border: none;
   padding: 0;
   cursor: pointer;
-  color: var(--accent);
+  color: var(--text);
   font-size: 1.05rem;
   font-weight: 700;
   text-align: left;
@@ -1015,9 +1072,9 @@
 /* ── Preview ── */
 .rb-preview {
   position: sticky;
-  top: 90px;
-  height: calc(100vh - 120px);
-  border-radius: 14px;
+  top: calc(var(--app-bar-h) + 12px);
+  height: calc(100vh - var(--app-bar-h) - 24px);
+  border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--border);
   background: #ffffff;
@@ -1045,7 +1102,7 @@
     grid-template-columns: 1fr;
   }
   .rb-wrap {
-    padding-top: 84px;
+    padding: 20px 14px 64px;
   }
 }
 

@@ -46,7 +46,7 @@ export const isConfigured = Boolean(
 
 // Only this account may upload / replace the public resume file AND view the
 // admin list of everyone's resumes. No other account is ever an admin.
-export const OWNER_EMAIL = "emmanuel26112000@gmail.com";
+export const OWNER_EMAIL = import.meta.env.VITE_OWNER_EMAIL || "";
 
 // True only for the single admin account above.
 export const isAdmin = (user) => Boolean(user && user.email === OWNER_EMAIL);
@@ -138,7 +138,7 @@ export async function listResumes() {
  *   match /public/{docId} {
  *     allow read: if true;
  *     allow write: if request.auth != null
- *       && request.auth.token.email == "emmanuel26112000@gmail.com";
+ *       && request.auth.token.email == "<your-owner-email>";
  *   }
  */
 const RESUME_DOC = ["public", "resume"];
