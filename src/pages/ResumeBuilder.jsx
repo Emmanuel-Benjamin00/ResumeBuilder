@@ -80,7 +80,7 @@ const genResumeId = () =>
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2)
   }`;
-const emptyCert = () => ({ text: "", disabled: false });
+const emptyCert = () => ({ text: "", date: "", disabled: false });
 const emptyCustomSection = () => {
   const fields = defaultFields();
   return { id: genSectionId(), title: "", fields, items: [emptyItem(fields)] };
@@ -118,9 +118,12 @@ const STORAGE_KEY = "resume-builder-data";
 // Bring any saved/older resume up to the current shape.
 function hydrate(raw) {
   const data = migrateData({ ...initialData, ...raw });
-  // certifications: old string[] → { text, disabled }[]
+  // certifications: old string[] → { text, date, disabled }[]; `date` was added
+  // later, so fill it in for resumes saved before it existed.
   data.certifications = (data.certifications || []).map((c) =>
-    typeof c === "string" ? { text: c, disabled: false } : c
+    typeof c === "string"
+      ? { text: c, date: "", disabled: false }
+      : { date: "", ...c }
   );
   if (!Array.isArray(data.disabledSections)) data.disabledSections = [];
   // summary: old single string → list of selectable variants. Read from `raw`
@@ -994,10 +997,12 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
                   />
                 </div>
                 <Textarea
-                  label="Bullet points (one per line)"
+                  label="Bullet points (one per line — start a line with # for a sub-heading)"
                   value={e.bullets}
                   onChange={(v) => setListItem("experience", i, "bullets", v)}
-                  placeholder={"Built X that did Y…\nImproved Z by N%…"}
+                  placeholder={
+                    "# Project Name\nBuilt X that did Y…\nImproved Z by N%…"
+                  }
                   rows={4}
                 />
               </div>
@@ -1051,7 +1056,7 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
                   />
                 </div>
                 <Textarea
-                  label="Bullet points (one per line)"
+                  label="Bullet points (one per line — start a line with # for a sub-heading)"
                   value={p.bullets}
                   onChange={(v) => setListItem("projects", i, "bullets", v)}
                   placeholder={"What you built and the impact…"}
@@ -1135,6 +1140,11 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
                     placeholder="Full-Stack Developer Program – Guvi"
                   />
                 </div>
+                <Input
+                  value={c.date}
+                  onChange={(v) => setListItem("certifications", i, "date", v)}
+                  placeholder="2023 – 2024"
+                />
                 <MoveButtons
                   onUp={() => moveListItem("certifications", i, i - 1)}
                   onDown={() => moveListItem("certifications", i, i + 1)}
