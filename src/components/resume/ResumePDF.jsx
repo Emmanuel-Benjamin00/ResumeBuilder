@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { createContext, useContext } from "react";
+import { createContext, useContext, Fragment } from "react";
 import {
   Document,
   Page,
@@ -72,7 +72,7 @@ function makeStyles(s) {
       flexDirection: "row",
       justifyContent: "space-between",
     },
-    entryTitle: { fontFamily: "Helvetica-Bold", fontSize: base + 0.5 },
+    entryTitle: { fontFamily: "Helvetica-Bold", fontSize: base + 1.5 },
     entryRight: { fontSize: base },
     entrySubRow: {
       flexDirection: "row",
@@ -87,8 +87,30 @@ function makeStyles(s) {
     bulletDot: { width: 10, fontSize: base },
     bulletText: { flex: 1, fontSize: base, textAlign: "justify" },
 
+    /* Sub-heading inside an entry — groups bullets under a named project.
+     * Deliberately ranks below the entry title: smaller, grey rather than
+     * black, and indented to the bullet column so it reads as a label owned
+     * by the entry above it instead of competing with the company name. */
+    subHeading: {
+      fontFamily: "Helvetica-Bold",
+      fontSize: base - 0.5,
+      color: "#3a3a3a",
+      paddingLeft: 8,
+      marginTop: 7,
+      marginBottom: 1,
+    },
+
     /* Skills / one-line rows */
     skillRow: { marginTop: 4, flexDirection: "row" },
+    /* Certification line: bold title on the left, optional date pushed to the
+     * right margin so it lines up with the dates in Experience and Education.
+     * Kept at the base size — a training entry shouldn't outrank a degree. */
+    certRow: {
+      marginTop: 4,
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    certText: { fontFamily: "Helvetica-Bold", fontSize: base, flex: 1 },
     skillLabel: { fontFamily: "Helvetica-Bold", fontSize: base },
     skillValue: { fontSize: base, flex: 1 },
 
@@ -148,6 +170,36 @@ function Bullet({ children }) {
   );
 }
 
+/* A line inside a bullets box that starts with "#" is a sub-heading, not a
+ * bullet — it labels the group of bullets under it (e.g. one project inside a
+ * multi-project role). */
+const SUBHEADING_RE = /^#+\s*/;
+/* Bullet characters people paste in from elsewhere; stripped so the renderer's
+ * own dot isn't doubled up ("• • text"). */
+const PASTED_MARKER_RE = /^[•·▪◦*-]\s+/;
+
+function SubHeading({ children }) {
+  const styles = useStyles();
+  // minPresenceAhead: don't strand a sub-heading at the bottom of a page with
+  // its bullets on the next one.
+  return (
+    <Text style={styles.subHeading} minPresenceAhead={36}>
+      {children}
+    </Text>
+  );
+}
+
+/* Render a bullets box: each line becomes a sub-heading or a bullet. */
+function BulletLines({ lines }) {
+  return lines.map((line, i) =>
+    SUBHEADING_RE.test(line) ? (
+      <SubHeading key={i}>{line.replace(SUBHEADING_RE, "")}</SubHeading>
+    ) : (
+      <Bullet key={i}>{line.replace(PASTED_MARKER_RE, "")}</Bullet>
+    )
+  );
+}
+
 function SectionHeading({ title }) {
   const styles = useStyles();
   // minPresenceAhead: if there isn't at least this much room below the heading
@@ -162,6 +214,8 @@ function SectionHeading({ title }) {
 }
 
 Bullet.propTypes = { children: PropTypes.node };
+SubHeading.propTypes = { children: PropTypes.node };
+BulletLines.propTypes = { lines: PropTypes.arrayOf(PropTypes.string).isRequired };
 SectionHeading.propTypes = { title: PropTypes.string.isRequired };
 ContactLine.propTypes = { personal: personalShape.isRequired };
 
@@ -175,8 +229,6 @@ function ContactLine({ personal }) {
   const items = [];
   if (isFilled(personal.email))
     items.push({ text: personal.email, href: `mailto:${personal.email}` });
-  if (isFilled(personal.phone)) items.push({ text: personal.phone });
-  if (isFilled(personal.location)) items.push({ text: personal.location });
   if (isFilled(personal.linkedin))
     items.push({
       text: prettyUrl(personal.linkedin),
@@ -192,6 +244,10 @@ function ContactLine({ personal }) {
       text: prettyUrl(personal.website),
       href: normalizeUrl(personal.website),
     });
+  // Phone then location last: the links are what a recruiter acts on first,
+  // so they lead; the contact details close the line.
+  if (isFilled(personal.phone)) items.push({ text: personal.phone });
+  if (isFilled(personal.location)) items.push({ text: personal.location });
 
   if (!items.length) return null;
 
@@ -199,7 +255,10 @@ function ContactLine({ personal }) {
     <Text style={styles.contactLine}>
       {items.map((it, i) => (
         <Text key={i}>
-          {i > 0 ? <Text style={styles.sep}>{"  |  "}</Text> : null}
+          {/* Single spaces, not double: when the contact line wraps inside a
+              multi-space run, react-pdf emits a stray hyphen at the break
+              ("… b5145593 |-"). Single spaces break cleanly. */}
+          {i > 0 ? <Text style={styles.sep}>{" | "}</Text> : null}
           {it.href ? (
             <Link src={it.href} style={styles.link}>
               {it.text}
@@ -322,14 +381,14 @@ export default function ResumePDF({ data: rawData }) {
   // never leaves blank headings behind.
   const nodes = {
     summary: isFilled(summary) ? (
-      <View>
+      <>
         <SectionHeading title="Professional Summary" />
         <Text style={styles.summary}>{summary}</Text>
-      </View>
+      </>
     ) : null,
 
     skills: skills.some((s) => isFilled(s.value)) ? (
-      <View>
+      <>
         <SectionHeading title="Technical Skills" />
         {skills
           .filter((s) => isFilled(s.value))
@@ -345,13 +404,13 @@ export default function ResumePDF({ data: rawData }) {
               <Bullet key={i}>{s.value}</Bullet>
             )
           )}
-      </View>
+      </>
     ) : null,
 
     experience: experience.some(
       (e) => isFilled(e.company) || isFilled(e.role) || splitLines(e.bullets).length
     ) ? (
-      <View>
+      <>
         <SectionHeading title="Experience" />
         {experience.map((e, i) => {
           const bullets = splitLines(e.bullets);
@@ -371,19 +430,17 @@ export default function ResumePDF({ data: rawData }) {
                   <Text style={styles.entrySubRight}>{e.location}</Text>
                 </View>
               </View>
-              {bullets.map((b, j) => (
-                <Bullet key={j}>{b}</Bullet>
-              ))}
+              <BulletLines lines={bullets} />
             </View>
           );
         })}
-      </View>
+      </>
     ) : null,
 
     projects: projects.some(
       (p) => isFilled(p.name) || splitLines(p.bullets).length
     ) ? (
-      <View>
+      <>
         <SectionHeading title="Projects" />
         {projects.map((p, i) => {
           const bullets = splitLines(p.bullets);
@@ -398,19 +455,17 @@ export default function ResumePDF({ data: rawData }) {
                   )}
                 </Text>
               </View>
-              {bullets.map((b, j) => (
-                <Bullet key={j}>{b}</Bullet>
-              ))}
+              <BulletLines lines={bullets} />
             </View>
           );
         })}
-      </View>
+      </>
     ) : null,
 
     education: education.some(
       (e) => isFilled(e.school) || isFilled(e.degree)
     ) ? (
-      <View>
+      <>
         <SectionHeading title="Education" />
         {education.map((e, i) => {
           if (!isFilled(e.school) && !isFilled(e.degree)) return null;
@@ -427,20 +482,23 @@ export default function ResumePDF({ data: rawData }) {
             </View>
           );
         })}
-      </View>
+      </>
     ) : null,
 
     certifications: certifications.filter((c) => isFilled(c.text)).length > 0 ? (
-      <View>
+      <>
         <SectionHeading title="Certifications & Training" />
         {certifications
           .filter((c) => isFilled(c.text))
           .map((c, i) => (
-            <View key={i} style={styles.skillRow}>
-              <Text style={styles.skillValue}>{c.text}</Text>
+            <View key={i} style={styles.certRow}>
+              <Text style={styles.certText}>{c.text}</Text>
+              {isFilled(c.date) && (
+                <Text style={styles.entryRight}>{c.date}</Text>
+              )}
             </View>
           ))}
-      </View>
+      </>
     ) : null,
   };
 
@@ -463,9 +521,12 @@ export default function ResumePDF({ data: rawData }) {
             <ContactLine personal={personal} />
           </View>
 
+          {/* Fragment, not View: a wrapping View hides the following rows from
+              the section heading's minPresenceAhead, which strands the heading
+              at a page bottom with its content on the next page. */}
           {order.map((key) =>
             !hidden.has(key) && nodes[key] ? (
-              <View key={key}>{nodes[key]}</View>
+              <Fragment key={key}>{nodes[key]}</Fragment>
             ) : null
           )}
         </Page>
@@ -485,14 +546,14 @@ function renderCustomSection(sec, styles) {
   if (!isFilled(sec.title) && !items.length) return null;
 
   return (
-    <View>
+    <>
       <SectionHeading title={sec.title || "Additional"} />
       {items.map((item, idx) => (
         <View key={idx} style={styles.entry} minPresenceAhead={40}>
           {renderEntryFields(fields, item, styles)}
         </View>
       ))}
-    </View>
+    </>
   );
 }
 
@@ -527,13 +588,25 @@ function renderEntryFields(fields, item, styles) {
       );
     } else if (f.type === "bullets") {
       flush();
-      splitLines(raw).forEach((b, i) =>
+      // The field label prefixes the first real bullet, not a "#" sub-heading.
+      let firstBullet = true;
+      splitLines(raw).forEach((b, i) => {
+        if (SUBHEADING_RE.test(b)) {
+          out.push(
+            <SubHeading key={`sh-${f.id}-${i}`}>
+              {b.replace(SUBHEADING_RE, "")}
+            </SubHeading>
+          );
+          return;
+        }
+        const text = b.replace(PASTED_MARKER_RE, "");
         out.push(
           <Bullet key={`b-${f.id}-${i}`}>
-            {i === 0 ? fieldDisplay(f, b) : b}
+            {firstBullet ? fieldDisplay(f, text) : text}
           </Bullet>
-        )
-      );
+        );
+        firstBullet = false;
+      });
     } else {
       // single-line text: pair left + right into one justified row
       const text = fieldDisplay(f, raw);
