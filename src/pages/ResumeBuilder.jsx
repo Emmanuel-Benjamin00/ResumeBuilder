@@ -9,6 +9,11 @@ import {
   withSettingsDefaults,
 } from "../components/resume/resumeSettings";
 import {
+  TEMPLATES,
+  DEFAULT_TEMPLATE_ID,
+  resolveTemplateId,
+} from "../components/resume/templates";
+import {
   BUILTIN_SECTIONS,
   genSectionId,
   normalizeOrder,
@@ -91,6 +96,7 @@ const initialSummary = emptySummary();
 const initialData = {
   personal: {
     name: "",
+    title: "", // optional job title under the name (not required)
     location: "",
     phone: "",
     email: "",
@@ -109,6 +115,7 @@ const initialData = {
   customSections: [],
   sectionOrder: [...BUILTIN_SECTIONS],
   disabledSections: [], // section keys hidden from the PDF
+  templateId: DEFAULT_TEMPLATE_ID, // visual PDF layout; per-resume, switchable
   settings: { ...DEFAULT_SETTINGS }, // PDF layout: margins, fonts, spacing
   notes: "", // private scratchpad — never rendered into the PDF
 };
@@ -143,8 +150,13 @@ function hydrate(raw) {
     data.selectedSummary = data.summaries[0].id;
   }
   delete data.summary;
-  // Nested settings need their own merge — the top-level spread is shallow, so
-  // a saved resume missing newer keys would otherwise arrive incomplete.
+  // Nested personal/settings need their own merge — the top-level spread is
+  // shallow, so a saved resume missing newer keys would otherwise arrive incomplete.
+  data.personal = {
+    ...initialData.personal,
+    ...(raw && raw.personal ? raw.personal : data.personal),
+  };
+  data.templateId = resolveTemplateId(data.templateId);
   data.settings = withSettingsDefaults(data.settings);
   return data;
 }
@@ -800,8 +812,10 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
             onToggle={toggleSection}
           />
 
-          {/* ── Layout & Spacing (fit to one page) ── */}
+          {/* ── Template + Layout & Spacing ── */}
           <LayoutPanel
+            templateId={resolveTemplateId(data.templateId)}
+            onTemplate={(id) => setField("templateId", id)}
             settings={withSettingsDefaults(data.settings)}
             onChange={setSetting}
             onPreset={applyPreset}
@@ -815,6 +829,12 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
                 value={data.personal.name}
                 onChange={(v) => setPersonal("name", v)}
                 placeholder="Emmanuel Benjamin D"
+              />
+              <Input
+                label="Job title (optional)"
+                value={data.personal.title || ""}
+                onChange={(v) => setPersonal("title", v)}
+                placeholder="Senior Software Engineer"
               />
               <Input
                 label="Location"
@@ -1219,7 +1239,11 @@ export default function ResumeBuilder({ theme = "dark", onToggleTheme }) {
                   Live preview
                 </div>
                 <div className="yt-preview-frame">
-                  <PDFViewer className="yt-player-frame" showToolbar={false}>
+                  <PDFViewer
+                    key={resolveTemplateId(data.templateId)}
+                    className="yt-player-frame"
+                    showToolbar={false}
+                  >
                     <ResumePDF data={data} />
                   </PDFViewer>
                 </div>
@@ -1254,12 +1278,32 @@ const SLIDERS = [
   { key: "nameSize", label: "Name size", min: 16, max: 28, step: 1, unit: "pt" },
 ];
 
-function LayoutPanel({ settings, onChange, onPreset }) {
+function LayoutPanel({ templateId, onTemplate, settings, onChange, onPreset }) {
   return (
-    <CollapsibleCard title="Layout & Spacing" defaultOpen={false}>
+    <CollapsibleCard title="Template & Layout" defaultOpen>
       <p className="rb-layout-hint">
-        Fit your resume onto one page by tightening spacing and fonts — no need
-        to cut content. Start with a preset, then fine-tune.
+        Pick a visual template for this resume — each resume keeps its own
+        choice. Then tighten spacing to fit one page if needed.
+      </p>
+
+      <div className="rb-preset-row rb-template-row">
+        {TEMPLATES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={`rb-preset-btn${templateId === t.id ? " rb-preset-btn-active" : ""}`}
+            onClick={() => onTemplate(t.id)}
+            title={t.hint}
+            aria-pressed={templateId === t.id}
+          >
+            <span className="rb-preset-label">{t.label}</span>
+            <span className="rb-preset-hint">{t.hint}</span>
+          </button>
+        ))}
+      </div>
+
+      <p className="rb-layout-hint rb-layout-hint-spaced">
+        Spacing presets — start here, then fine-tune the sliders.
       </p>
 
       <div className="rb-preset-row">
@@ -1305,6 +1349,8 @@ function LayoutPanel({ settings, onChange, onPreset }) {
 }
 
 LayoutPanel.propTypes = {
+  templateId: PropTypes.string.isRequired,
+  onTemplate: PropTypes.func.isRequired,
   settings: PropTypes.object.isRequired,
   onChange: PropTypes.func.isRequired,
   onPreset: PropTypes.func.isRequired,
