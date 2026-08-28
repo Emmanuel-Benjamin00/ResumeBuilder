@@ -1273,6 +1273,11 @@
   border-color: var(--accent);
   background: var(--accent-soft);
 }
+.rb-preset-btn-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
 .rb-preset-label {
   font-weight: 600;
   font-size: 0.9rem;
@@ -1281,6 +1286,12 @@
 .rb-preset-hint {
   font-size: 0.74rem;
   color: var(--text-dim);
+}
+.rb-layout-hint-spaced {
+  margin-top: 4px;
+}
+.rb-template-row {
+  margin-bottom: 18px;
 }
 .rb-pagesize {
   max-width: 220px;

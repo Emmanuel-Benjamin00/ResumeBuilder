@@ -4,6 +4,14 @@ A live, ATS-friendly resume builder. Fill in your details, preview the PDF in
 real time, keep a separate resume per company, and export a clean one-page PDF.
 Optional Firebase cloud sync lets you open your resumes on any device.
 
+**Built with:** React 18 · Vite · @react-pdf/renderer · Firebase (Auth + Firestore)
+
+<!-- TODO: replace with your deployed Netlify URL -->
+🔗 **[Live demo](https://itstheresumeuwant.netlify.app/)** &nbsp;·&nbsp; [My-Portfolio](https://github.com/Emmanuel-Benjamin00/My-Portfolio)
+
+<!-- TODO: add a screenshot — drag a PNG into GitHub's editor to upload, or commit docs/screenshot.png -->
+![Resume Builder screenshot](docs/screenshot.png)
+
 > Extracted as a standalone product from
 > [My-Portfolio](https://github.com/Emmanuel-Benjamin00/My-Portfolio). Both apps
 > can point at the **same Firebase project**, so your resumes stay in sync
@@ -106,4 +114,3 @@ src/
 │   └── ResumeBuilder.css
 └── components/resume/          # PDF, form controls, custom sections, admin
 ```
-# ResumeBuilder
